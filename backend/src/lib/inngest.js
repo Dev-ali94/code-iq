@@ -2,7 +2,7 @@ import { Inngest } from "inngest";
 import User from "../models/User.js";
 import { deleteStreamUser, upsertStreamUser } from "./stream.js";
 
-export const inngest = new Inngest({ id: "video-calling-interview-app" });
+export const inngest = new Inngest({ id: "code-iq" });
 
 const syncUser = inngest.createFunction(
   { id: "sync-user" },
