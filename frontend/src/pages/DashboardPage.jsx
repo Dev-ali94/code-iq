@@ -23,17 +23,13 @@ function DashboardPage() {
 
  const handleCreateRoom = async () => {
   if (!roomConfig.problem || !roomConfig.difficulty) return;
-
-  try {
     const data = await createSessionMutation.mutateAsync({
       problem: roomConfig.problem,
       difficulty: roomConfig.difficulty.toLowerCase(),
     });
     setShowCreateModal(false);
     navigate(`/session/${data.session._id}`);
-  } catch (error) {
-    console.error(error);
-  }
+  
 };
 
   const activeSessions = activeSessionsData?.sessions || [];
