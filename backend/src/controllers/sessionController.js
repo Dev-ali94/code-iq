@@ -5,8 +5,8 @@ import Session from "../models/Session.js";
 export async function createSession(req, res) {
   try {
     const { problem, difficulty } = req.body;
-    const userId = req.user.id;
     const clerkId = req.user.clerkId;
+    const userId = req.user._id;
 
     if (!problem || !difficulty) {
       return res.status(400).json({ message: "Problem and difficulty are required" });
