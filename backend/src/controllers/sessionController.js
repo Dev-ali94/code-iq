@@ -1,53 +1,45 @@
 import { chatClient, streamClient } from "../lib/stream.js";
 import Session from "../models/Session.js";
 
-
 export async function createSession(req, res) {
   try {
     const { problem, difficulty } = req.body;
-    const clerkId = req.user.clerkId;
     const userId = req.user._id;
+    const clerkId = req.user.clerkId;
 
     if (!problem || !difficulty) {
       return res.status(400).json({ message: "Problem and difficulty are required" });
     }
 
+    // generate a unique call id for stream video
     const callId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
-    // ✅ Wrap in try/catch and throw if any step fails
-    let call, channel;
-    try {
-      call = await streamClient.video.call("default", callId).getOrCreate({
-        data: { created_by_id: clerkId, custom: { problem, difficulty } },
-      });
+    // create session in db
+    const session = await Session.create({ problem, difficulty, host: userId, callId });
 
-      channel = chatClient.channel("messaging", callId, {
-        name: `${problem} Session`,
+    // create stream video call
+    await streamClient.video.call("default", callId).getOrCreate({
+      data: {
         created_by_id: clerkId,
-        members: [clerkId],
-      });
-      await channel.create();
-    } catch (err) {
-      console.error("Stream or Chat creation failed:", err);
-      return res.status(500).json({ message: "Failed to create video or chat session" });
-    }
-
-    // Only after video + chat succeeds, save MongoDB session
-    const session = await Session.create({
-      problem,
-      difficulty,
-      host: userId,
-      callId,
+        custom: { problem, difficulty, sessionId: session._id.toString() },
+      },
     });
 
-    return res.status(201).json({ session });
+    // chat messaging
+    const channel = chatClient.channel("messaging", callId, {
+      name: `${problem} Session`,
+      created_by_id: clerkId,
+      members: [clerkId],
+    });
 
+    await channel.create();
+
+    res.status(201).json({ session });
   } catch (error) {
-    console.error("Error in createSession controller:", error);
-    return res.status(500).json({ message: "Failed to create session" });
+    console.log("Error in createSession controller:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 }
-
 
 export async function getActiveSessions(_, res) {
   try {
