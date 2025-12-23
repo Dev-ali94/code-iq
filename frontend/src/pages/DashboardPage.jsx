@@ -30,7 +30,7 @@ function DashboardPage() {
       difficulty: roomConfig.difficulty.toLowerCase(),
     });
     setShowCreateModal(false);
-    navigate(`/session/${data.session._id}`);
+    navigate(`/session/${data.session.id}`);
   } catch (error) {
     console.error(error);
   }
