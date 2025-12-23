@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { data, useNavigate } from "react-router";
 import { useUser } from "@clerk/clerk-react";
 import { useState } from "react";
 import { useActiveSessions, useCreateSession, useMyRecentSessions } from "../hooks/useSessions";
@@ -17,9 +17,10 @@ function DashboardPage() {
   const [roomConfig, setRoomConfig] = useState({ problem: "", difficulty: "" });
 
   const createSessionMutation = useCreateSession();
-
   const { data: activeSessionsData, isLoading: loadingActiveSessions } = useActiveSessions();
   const { data: recentSessionsData, isLoading: loadingRecentSessions } = useMyRecentSessions();
+  console.log(data.activeSessions);
+  
 
  const handleCreateRoom = async () => {
   if (!roomConfig.problem || !roomConfig.difficulty) return;
