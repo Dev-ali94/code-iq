@@ -2,11 +2,6 @@ import { chatClient, streamClient } from "../lib/stream.js";
 import Session from "../models/Session.js";
 
 
-function wait(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-
 export async function createSession(req, res) {
   try {
     const { problem, difficulty } = req.body;
@@ -17,45 +12,50 @@ export async function createSession(req, res) {
       return res.status(400).json({ message: "Problem and difficulty are required" });
     }
 
+    // Use the same callId for video, chat, and DB
     const callId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
     // 1️⃣ Create video call
-    let call;
     try {
-      call = await streamClient.video.call("default", callId).getOrCreate({
+      const call = await streamClient.video.call("default", callId).getOrCreate({
         data: { created_by_id: clerkId, custom: { problem, difficulty } },
       });
-      console.log("Video call created:", call.id);
-      await wait(30000); // wait 1 second to ensure Stream call is fully ready
+      console.log("Video call created:", callId);
     } catch (err) {
       console.error("Video call creation failed:", err);
       return res.status(500).json({ message: "Failed to create video call" });
     }
 
     // 2️⃣ Create chat channel
-    const channel = chatClient.channel("messaging", callId, {
-      name: `${problem} Session`,
-      created_by_id: clerkId,
-      members: [clerkId],
-    });
     try {
+      const channel = chatClient.channel("messaging", callId, {
+        name: `${problem} Session`,
+        created_by_id: clerkId,
+        members: [clerkId],
+      });
       await channel.create();
       console.log("Chat channel created:", callId);
-      await wait(1000); // wait 1 second to ensure channel is fully ready
     } catch (err) {
       console.error("Chat channel creation failed:", err);
       return res.status(500).json({ message: "Failed to create chat channel" });
     }
 
-    // 3️⃣ Create MongoDB session after Stream calls are fully ready
-    const session = await Session.create({ problem, difficulty, host: userId, callId });
+    // 3️⃣ Only after Stream is ready, save MongoDB session
+    const session = await Session.create({
+      problem,
+      difficulty,
+      host: userId,
+      callId, // use the same callId generated above
+    });
 
+    // ✅ Success
     res.status(201).json({ session });
   } catch (error) {
     console.error("Error in createSession controller:", error);
     res.status(500).json({ message: "Failed to create session" });
   }
 }
+
 
 
 
