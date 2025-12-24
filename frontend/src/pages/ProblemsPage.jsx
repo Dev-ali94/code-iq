@@ -24,7 +24,30 @@ function ProblemsPage() {
             Sharpen your coding skills with these curated problems
           </p>
         </div>
+ {/* STATS FOOTER */}
+        <div className="my-12 card bg-base-100 shadow-lg">
+          <div className="card-body">
+            <div className="stats stats-vertical lg:stats-horizontal">
+              <div className="stat">
+                <div className="stat-title">Total Problems</div>
+                <div className="stat-value text-primary">{problems.length}</div>
+              </div>
 
+              <div className="stat">
+                <div className="stat-title">Easy</div>
+                <div className="stat-value text-success">{easyProblemsCount}</div>
+              </div>
+              <div className="stat">
+                <div className="stat-title">Medium</div>
+                <div className="stat-value text-warning">{mediumProblemsCount}</div>
+              </div>
+              <div className="stat">
+                <div className="stat-title">Hard</div>
+                <div className="stat-value text-error">{hardProblemsCount}</div>
+              </div>
+            </div>
+          </div>
+        </div>
         {/* PROBLEMS LIST */}
         <div className="space-y-4">
           {problems.map((problem) => (
@@ -65,30 +88,7 @@ function ProblemsPage() {
           ))}
         </div>
 
-        {/* STATS FOOTER */}
-        <div className="mt-12 card bg-base-100 shadow-lg">
-          <div className="card-body">
-            <div className="stats stats-vertical lg:stats-horizontal">
-              <div className="stat">
-                <div className="stat-title">Total Problems</div>
-                <div className="stat-value text-primary">{problems.length}</div>
-              </div>
-
-              <div className="stat">
-                <div className="stat-title">Easy</div>
-                <div className="stat-value text-success">{easyProblemsCount}</div>
-              </div>
-              <div className="stat">
-                <div className="stat-title">Medium</div>
-                <div className="stat-value text-warning">{mediumProblemsCount}</div>
-              </div>
-              <div className="stat">
-                <div className="stat-title">Hard</div>
-                <div className="stat-value text-error">{hardProblemsCount}</div>
-              </div>
-            </div>
-          </div>
-        </div>
+       
       </div>
     </div>
   );
