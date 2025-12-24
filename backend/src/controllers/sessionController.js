@@ -10,15 +10,40 @@ export async function createSession(req, res) {
     if (!problem || !difficulty) {
       return res.status(400).json({ message: "Problem and difficulty are required" });
     }
-    const callId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-    const session = await Session.create({ problem, difficulty, host: userId, callId });
-    
-    await streamClient.video.call("default", callId).getOrCreate({
-      data: {
-        created_by_id: clerkId,
-        custom: { problem, difficulty, sessionId: session._id.toString() },
-      },
+
+    // 1️⃣ Ensure Stream user exists
+    await upsertStreamUser({
+      id: clerkId,
+      name: req.user.name || "User",
+      image: req.user.image,
     });
+
+    const callId = `session_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
+    // 2️⃣ Create DB session
+    const session = await Session.create({
+      problem,
+      difficulty,
+      host: userId,
+      callId,
+    });
+
+    // 3️⃣ Create Stream call
+    await streamClient.video
+      .call("default", callId)
+      .getOrCreate({
+        data: {
+          created_by_id: clerkId,
+          members: [{ user_id: clerkId }],
+          custom: {
+            problem,
+            difficulty,
+            sessionId: session._id.toString(),
+          },
+        },
+      });
+
+    // 4️⃣ Create chat channel
     const channel = chatClient.channel("messaging", callId, {
       name: `${problem} Session`,
       created_by_id: clerkId,
@@ -26,9 +51,11 @@ export async function createSession(req, res) {
     });
 
     await channel.create();
+
     res.status(201).json({ session });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("CREATE SESSION ERROR:", error);
+    res.status(500).json({ message: error.message });
   }
 }
 
