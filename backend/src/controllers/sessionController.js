@@ -1,4 +1,5 @@
 import { chatClient, streamClient } from "../lib/stream.js";
+import {upsertStreamUser,deleteStreamUser} from '../lib/stream.js'
 import Session from "../models/Session.js";
 
 export async function createSession(req, res) {
@@ -29,19 +30,13 @@ export async function createSession(req, res) {
     });
 
     // 3️⃣ Create Stream call
-    await streamClient.video
-      .call("default", callId)
-      .getOrCreate({
+    await streamClient.video.call("default", callId).getOrCreate({
         data: {
           created_by_id: clerkId,
           members: [{ user_id: clerkId }],
-          custom: {
-            problem,
-            difficulty,
-            sessionId: session._id.toString(),
+      
           },
-        },
-      });
+        });
 
     // 4️⃣ Create chat channel
     const channel = chatClient.channel("messaging", callId, {
